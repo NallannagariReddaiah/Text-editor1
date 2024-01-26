@@ -1,0 +1,332 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
+#define MAX 100
+struct stack
+{
+    char word[20];
+    struct stack *link;
+};
+struct stack *top1=NULL;
+struct stack *top2=NULL;
+int isEMPTY1(void)
+{
+    if(top1==NULL)
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+int isEMPTY2(void)
+{
+    if(top2==NULL)
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+int isFULL(struct stack *temp)
+{
+    if(temp==NULL)
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+void push1(char str[])
+{
+    struct stack *temp=(struct stack *)malloc(sizeof(struct stack));
+    if(isFULL(temp))
+    {
+        printf("Stack overflow");
+        return;
+    }
+    strcpy(temp->word,str);
+    temp->link=top1;
+    top1=temp;
+}
+struct stack *pop1(void)
+{
+    if(isEMPTY1())
+    {
+        printf("Stack underflow");
+        return NULL;
+    }
+    struct stack *temp=top1;
+    top1=top1->link;
+    return temp;
+}
+void push2(char str[])
+{
+    struct stack *temp=(struct stack *)malloc(sizeof(struct stack));
+    if(isFULL(temp))
+    {
+        printf("Stack overflow");
+        return;
+    }
+    strcpy(temp->word,str);
+    temp->link=top2;
+    top2=temp;
+}
+struct stack *pop2(void)
+{
+    if(isEMPTY2())
+    {
+        printf("Stack underflow");
+        return NULL;
+    }
+    struct stack *temp=top2;
+    top2=top2->link;
+    return temp;
+}
+struct stack *undo(void)
+{
+    if(top1==NULL)
+    {
+        return NULL;
+    }
+    struct stack *temp=top1;
+    top1=top1->link;
+    push2(temp->word);
+    return temp;
+}
+struct stack *redo()
+{
+    struct stack *temp=top2;
+    top2=top2->link;
+    return temp;
+}
+void file_open(FILE *fp,char str[1000])
+{
+    if(fp==NULL)
+    {
+        return;
+    }
+    struct stack *temp;
+    while(top1)
+    {
+        temp=pop1();
+    }
+    char ptr[1000];
+    char ktr[20];
+    fgets(ptr,sizeof(ptr),fp);
+    int k=0,i;
+            for(i=0;1;i++)
+            {
+                if(ptr[i]==' ')
+                {
+                    ktr[k++]='\0';
+                    push1(ktr);
+                    k=0;
+                    str[i]=ptr[i];
+                    continue;
+                }
+                if(ptr[i]=='\0')
+                {
+                    ktr[k++]='\0';
+                    push1(ktr);
+                    str[i]=ptr[i];
+                    break;
+                }
+                ktr[k++]=ptr[i];
+                str[i]=ptr[i];
+            }
+}
+void file_append(FILE *fp,char str[])
+{
+    if(fp==NULL)
+    {
+       return;
+    }
+    int p=fputs(str,fp);
+    if(p==0)
+    {
+        printf("Appended in the file successfully\n");
+    }
+    else
+    {
+        printf("Unable to append to the file specified\n");
+    }
+}
+void file_save(FILE *fp,char str[])
+{
+    if(fp==NULL)
+    {
+        return;
+    }
+    int p=fputs(str,fp);
+    if(p==0)
+    {
+        printf("Data in the text editor is successfully saved in to the specified file\n");
+    }
+    else
+    {
+        printf("Saving the data in the text editor in to the specified file is a failure\n");
+    }
+}
+void file_write(FILE *fp,char str[])
+{
+    if(fp==NULL)
+    {
+        return;
+    }
+    int p=fputs(str,fp);
+    if(p==0)
+    {
+        printf("Overwritten successfully\n");
+    }
+    else
+    {
+        printf("Unable to overwrite or to write newly in the specified file\n");
+    }
+}
+void display(void)
+{
+    struct stack *temp=top1;
+    int c=0;
+    while(temp!=NULL)
+    {
+        push2(temp->word);
+        temp=temp->link;
+        c++;
+    }
+    while(c>0)
+    {
+        temp=pop2();
+        printf("%s ",temp->word);
+        c--;
+    }
+}
+void destroy_text_editor(void)
+{
+    struct stack *temp;
+    while(top1)
+    {
+        temp=pop1();
+    }
+    while(top2)
+    {
+        temp=pop2();
+    }
+    printf("Text editor is successfully destroyed\n");
+}
+int main()
+{
+    char str[1000],temp1[20];
+    char ptr[20];
+    char *token;
+    char *rtp;
+    int choice,l,l1,i,k;
+    struct stack *temp;
+    while(1)
+    {
+        printf("Enter your choice:-");
+        scanf("%d",&choice);
+        fflush(stdin);
+        switch(choice)
+        {
+            case 1:
+                if(top1!=NULL)
+                {
+                    printf("You are continuing giving data to the old text editor\n");
+                }
+                else
+                {
+                    printf("Creating a new text editor\n");
+                }
+            printf("Enter write up consisting below 1000 characters:-");
+            gets(str);
+            k=0;
+            for(i=0;1;i++)
+            {
+                if(str[i]==' ')
+                {
+                    ptr[k++]='\0';
+                    puts(ptr);
+                    push1(ptr);
+                    k=0;
+                    continue;
+                }
+                if(str[i]=='\0')
+                {
+                    ptr[k++]='\0';
+                    puts(ptr);
+                    push1(ptr);
+                    break;
+                }
+                ptr[k++]=str[i];
+            }
+            break;
+            case 2:temp=undo();
+                   l=strlen(str);
+                   l1=strlen(temp->word);
+                   str[l-l1-1]='\0';
+                   printf("Job to undo the data entered is sucessfully done\n");
+                   break;
+            break;
+            case 3:temp=redo();
+                   strcat(str," ");
+                   strcat(str,temp->word);
+                   printf("Job to redo the data is sucessfully done\n");
+                   break;
+            case 4:printf("Enter the existed file to open:-");
+                   scanf("%s",temp1);
+                   FILE *fp=fopen(temp1,"r+");
+                   if(fp==NULL)
+                   {
+                       printf("file does not exist\n");
+                       break;
+                   }
+                   file_open(fp,str);
+                   puts(str);
+            break;
+            case 5:printf("Enter the existed file name to append the data in the editor:-");
+                   scanf("%s",temp1);
+                   FILE *fp1=NULL;
+                   fp1=fopen(temp1,"a");
+                   if(fp1==NULL)
+                   {
+                       printf("file does not exist\n");
+                       break;
+                   }
+                   fprintf(fp1," ");
+                   file_append(fp1,str);
+            break;
+            case 6:printf("Enter the new file name to create and save the data in the text editor:-");
+            scanf("%s",temp1);
+            FILE *fp2=NULL;
+            fp2=fopen(temp1,"w");
+            file_save(fp2,str);
+            break;
+            case 7:printf("Enter the file name to overwrite the current data in the text editor \n");
+                   printf("If file is new then creates a new file");
+                   scanf("%s",temp1);
+                   FILE *fp3=NULL;
+                   fp3=fopen(temp1,"w");
+                   if(fp3==NULL)
+                   {
+                       printf("File creation failure");
+                       break;
+                   }
+                   file_write(fp3,str);
+            break;
+             case 8:printf("Current data in the text editor:-\n");
+                display();
+                break;
+            case 9:destroy_text_editor();
+            break;
+                case 10:exit(0);
+                break;
+            default:printf("Enter the valid choice");
+        }
+    }
+}
